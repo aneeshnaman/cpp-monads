@@ -63,6 +63,7 @@ auto mbind(Plan<T, State> plan, F f) -> decltype(f(plan(State()).first)) {
   };
 }
 
+// Like mbind, but continuation doesn't use the result of the first plan.
 template <class T, class State, class F>
 auto mthen(Plan<T, State> plan, F f) -> decltype(f()) {
   return [plan, f](State state) {
