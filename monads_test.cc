@@ -45,8 +45,8 @@ TEST_CASE("ForEach", "ForEach") {
     vector<string> rows = {"a", "b"};
     vector<string> cols = {"1", "2"};
     vector<string> expected = {"a1", "a2", "b1", "b2"};
-    REQUIRE(monads::for_each(rows, [&cols](const string& c1) {
-      return monads::for_each(cols, [&c1](const string& c2) {
+    REQUIRE(monads::for_each(rows, [&cols](string c1) {
+      return monads::for_each(cols, [&c1](string c2) {
         return vector<string>{c1 + c2};
       });
     }) == expected);
