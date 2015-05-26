@@ -43,6 +43,12 @@ PlanResult<T, State> run_plan(Plan<T, State> plan, State state) {
   return plan(state);
 }
 
+// Runs the given plan with the state. Returns only the result.
+template <class T, class State>
+T eval_plan(Plan<T, State> plan, State state) {
+  return plan(state).first;
+}
+
 // Binds a Plan to a continuation (a plan creator)
 template <class T, class State, class F>
 auto mbind(Plan<T, State> plan, F f) -> decltype(f(plan(State()).first)) {
@@ -53,6 +59,15 @@ auto mbind(Plan<T, State> plan, F f) -> decltype(f(plan(State()).first)) {
   return [plan, f](State state) {
     auto result = run_plan(plan, state);
     auto new_plan = f(result.first);
+    return run_plan(new_plan, result.second);
+  };
+}
+
+template <class T, class State, class F>
+auto mthen(Plan<T, State> plan, F f) -> decltype(f()) {
+  return [plan, f](State state) {
+    auto result = run_plan(plan);
+    auto new_plan = f();
     return run_plan(new_plan, result.second);
   };
 }
@@ -78,9 +93,6 @@ using ListState = std::vector<T>;
 // Plan that selects the first element from the list
 template <class T>
 PlanResult<T, ListState<T>> select_first(ListState<T> state) {
-  if (state.empty()) {
-    return std::make_pair(0, state);
-  }
   auto new_state = ListState<T>(state.begin() + 1, state.end());
   return std::make_pair(*state.begin(), new_state);
 }
