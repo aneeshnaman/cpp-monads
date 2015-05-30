@@ -1,6 +1,10 @@
 #include <algorithm>
+#include <iostream>
 #include <type_traits>
 #include <vector>
+
+#define LOG(msg) \
+  printf("%15s:%3d] %s\n", __FILE__, __LINE__, (msg))
 
 namespace monads {
 
@@ -29,6 +33,8 @@ auto for_each(const std::vector<T>& list, F f) -> decltype(f(list.front())) {
                  std::back_inserter(transformed), f);
   return concat_all(transformed);
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 template <class T /* output type */, class State>
 using PlanResult = std::pair<T, State>;
@@ -75,7 +81,9 @@ auto mthen(Plan<T, State> plan, F f) -> decltype(f()) {
 
 template <class T, class State>
 Plan<T, State> mreturn(T t) {
-  return [t](State state) { return std::make_pair(t, state); };
+  return [t](State state) {
+    return std::make_pair(t, state);
+  };
 }
 
 template <class State>
