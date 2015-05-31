@@ -17,6 +17,7 @@ using State = std::vector<Item>;
 using PlanResult = monads::PlanResult<Item, State>;
 using Plan = monads::Plan<Item, State>;
 
+// Creates a plan to solve a prefix list of Items.
 Plan calc();
 
 }  // namespace calc
