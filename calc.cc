@@ -8,8 +8,9 @@ std::string to_string(State state) {
   return s;
 }
 
-Plan popped() {
+Plan pop() {
   return [](State state) {
+    if (state.empty()) throw "Empty state. Cannot pop";
     return std::make_pair(state.front(), State(state.begin() + 1, state.end()));
   };
 }
@@ -31,7 +32,7 @@ Plan subtract() {
 }
 
 Plan calc() {
-  return monads::mbind(popped(), [](Item front) {
+  return monads::mbind(pop(), [](Item front) {
     switch (front.type) {
       case ItemType::kPlus:
         return add();
