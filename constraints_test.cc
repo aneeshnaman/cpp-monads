@@ -36,8 +36,20 @@ TEST_CASE("VectorWithSum", "VectorWithSum") {
     vector<std::vector<int>> result = eval_plan(vector_with_sum(3, 6), in);
     REQUIRE(result.size() == 6);
     for (const auto& r : result) {
-      REQUIRE(sum(r) == 6);
+      REQUIRE(list::sum(r) == 6);
       LOG(list::to_string(r).c_str());
+    }
+  }
+}
+
+TEST_CASE("TupleWithSum", "TupleWithSum") {
+  SECTION("TupleWithSum") {
+    vector<int> in = {1,2,3,4,5,6,7,8};
+    vector<std::tuple<int, int, int>> result = eval_plan(tuple_with_sum<int, 3>(6), in);
+    REQUIRE(result.size() == 6);
+    for (const auto& r : result) {
+      REQUIRE((tuple::sum<int, 3>(r)) == 6);
+      LOG((tuple::to_string<int, 3>(r).c_str()));
     }
   }
 }

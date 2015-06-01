@@ -3,6 +3,7 @@
 
 #include "list.h"
 #include "monads.h"
+#include "tuple.h"
 
 namespace constraints {
 
@@ -112,30 +113,61 @@ Plan<std::pair<T, T>> pair_with_sum(T total) {
   });
 }
 
-template <class T>
-T sum(std::vector<T> in) {
-  T s = 0;
-  for (auto t : in) { s += t; }
-  return s;
-}
+///////////////////////////////////////////////////////////////////////////////
 
 template <class T, class F>
-Plan<std::vector<T>> mbind_repeat(int n, Plan<T> plan, std::vector<T> list, F f) {
+Plan<std::vector<T>> mbind_repeat_vector(int n, Plan<T> plan, std::vector<T> list, F f) {
   if (n == 0) return f(list);
   return mbind<T, std::vector<T>>(plan, [=](T selected) {
     std::vector<T> new_list = list;
     new_list.push_back(selected);
-    return mbind_repeat(n-1, plan, new_list, f);
+    return mbind_repeat_vector(n-1, plan, new_list, f);
   });
 }
 
 template <class T>
 Plan<std::vector<T>> vector_with_sum(int length, T total) {
-  return mbind_repeat(length, select_one<T>(), {}, [=](std::vector<T> selected) {
-    return mthen<void*, std::vector<T>>(mguard(sum(selected) == total), [=]() {
+  return mbind_repeat_vector(length, select_one<T>(), {}, [=](std::vector<T> selected) {
+    return mthen<void*, std::vector<T>>(mguard(list::sum(selected) == total), [=]() {
       return mreturn(selected);
     });
   });
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+template <class T, std::size_t size, class F, std::size_t size_now>
+class Binder {
+  public:
+    static Plan<typename tuple::TupleDef<T, size>::type> mbind_repeat_tuple(
+        Plan<T> plan, typename tuple::TupleDef<T, size_now>::type list, F f) {
+      return mbind<T, typename tuple::TupleDef<T, size>::type>(plan, [=](T selected) {
+        typename tuple::TupleDef<T, size_now+1>::type new_list =
+            std::tuple_cat(list, std::make_tuple<T>(std::move(selected)));
+        return Binder<T, size, F, size_now+1>::mbind_repeat_tuple(plan, new_list, f);
+      });
+    }
+};
+
+template <class T, std::size_t size, class F>
+class Binder<T, size, F, size> {
+  public:
+    static Plan<typename tuple::TupleDef<T, size>::type> mbind_repeat_tuple(
+        Plan<T> plan, typename tuple::TupleDef<T, size>::type list, F f) {
+      return f(list);
+    }
+};
+
+template <class T, std::size_t size>
+Plan<typename tuple::TupleDef<T, size>::type> tuple_with_sum(T total) {
+  auto f = [=](typename tuple::TupleDef<T, size>::type selected) {
+    return mthen<void*, typename tuple::TupleDef<T, size>::type>(
+        mguard(tuple::sum<T, size>(selected) == total), [=]() {
+          return mreturn(selected);
+    });
+  };
+
+  return Binder<T, size, decltype(f), 0>::mbind_repeat_tuple(select_one<T>(), {}, f);
 }
 
 }  // namespace constraints

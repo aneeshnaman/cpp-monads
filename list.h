@@ -9,7 +9,7 @@ namespace list {
 template <class T>
 std::string to_string(std::vector<T> list) {
   std::string s;
-  for (auto item : list) { s += " " + std::to_string(item) + ", "; }
+  for (auto item : list) { s += std::to_string(item) + ", "; }
   return s;
 }
 
@@ -44,6 +44,13 @@ std::vector<T> dedup(std::vector<T> list, Predicate equal) {
   static_assert(std::is_convertible<
       Predicate, std::function<bool(T, T)>>::value, "Bad predicate");
 }*/
+
+template <class T>
+T sum(std::vector<T> in) {
+  T s = 0;
+  for (auto t : in) { s += t; }
+  return s;
+}
 
 }  // namespace list
 
