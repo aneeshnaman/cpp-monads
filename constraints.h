@@ -101,8 +101,7 @@ template <class T>
 Plan<std::pair<T, T>> pair_with_sum(T total) {
   return mbind<T, std::pair<T, T>>(select_one<T>(), [=](T first) {
     return mbind<T, std::pair<T, T>>(select_one<T>(), [=](T second) {
-      return mthen<void*, std::pair<T, T>>(
-          mguard(first + second == total), [=]() {
+      return mthen<void*, std::pair<T, T>>(mguard(first + second == total), [=]() {
         return mreturn(std::make_pair(first, second));
       });
     });
