@@ -2,12 +2,6 @@
 
 namespace calc {
 
-std::string to_string(State state) {
-  std::string s;
-  for (auto item : state) { s += " " + std::to_string(item.num) + ", "; }
-  return s;
-}
-
 Plan pop() {
   return [](State state) {
     if (state.empty()) throw "Empty state. Cannot pop";

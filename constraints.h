@@ -108,4 +108,30 @@ Plan<std::pair<T, T>> pair_with_sum(T total) {
   });
 }
 
+template <class T>
+T sum(std::vector<T> in) {
+  T s = 0;
+  for (auto t : in) { s += t; }
+  return s;
+}
+
+template <class T, class F>
+Plan<std::vector<T>> mbind_repeat(int n, Plan<T> plan, std::vector<T> list, F f) {
+  if (n == 0) return f(list);
+  return mbind<T, std::vector<T>>(plan, [=](T selected) {
+    std::vector<T> new_list = list;
+    new_list.push_back(selected);
+    return mbind_repeat(n-1, plan, new_list, f);
+  });
+}
+
+template <class T>
+Plan<std::vector<T>> vector_with_sum(int length, T total) {
+  return mbind_repeat(length, select_one<T>(), {}, [=](std::vector<T> selected) {
+    return mthen<void*, std::vector<T>>(mguard(sum(selected) == total), [=]() {
+      return mreturn(selected);
+    });
+  });
+}
+
 }  // namespace constraints

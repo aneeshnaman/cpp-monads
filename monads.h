@@ -8,6 +8,13 @@
 
 namespace monads {
 
+template <class T>
+std::string to_string(std::vector<T> list) {
+  std::string s;
+  for (auto item : list) { s += " " + std::to_string(item) + ", "; }
+  return s;
+}
+
 // Returns a list with all the input lists concatenated
 template <class T /* element type */>
 std::vector<T> concat_all(const std::vector<std::vector<T>>& listList) {
