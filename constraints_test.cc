@@ -4,6 +4,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.h"
 #include "constraints.h"
+#include "list.h"
 
 using std::pair;
 using std::string;
@@ -36,7 +37,7 @@ TEST_CASE("VectorWithSum", "VectorWithSum") {
     REQUIRE(result.size() == 6);
     for (const auto& r : result) {
       REQUIRE(sum(r) == 6);
-      LOG(monads::to_string(r).c_str());
+      LOG(list::to_string(r).c_str());
     }
   }
 }

@@ -1,3 +1,7 @@
+#ifndef _CONSTRAINTS_H_
+#define _CONSTRAINTS_H_
+
+#include "list.h"
 #include "monads.h"
 
 namespace constraints {
@@ -35,7 +39,7 @@ auto mbind(Plan<T> plan, F f) -> decltype(f(plan(State()).begin()->first)) {
       Plan<U> next_plan = f(r.first);
       mapped.push_back(run_plan(next_plan, r.second));
     }
-    return monads::concat_all(mapped);
+    return list::concat_all(mapped);
   };
 }
 
@@ -50,7 +54,7 @@ auto mthen(Plan<T> plan, F f) -> decltype(f()) {
       Plan<U> next_plan = f();
       mapped.push_back(run_plan(next_plan, r.second));
     }
-    return monads::concat_all(mapped);
+    return list::concat_all(mapped);
   };
 }
 
@@ -135,3 +139,5 @@ Plan<std::vector<T>> vector_with_sum(int length, T total) {
 }
 
 }  // namespace constraints
+
+#endif // _CONSTRAINTS_H_
