@@ -39,11 +39,43 @@ auto mbind(Plan<T> plan, F f) -> decltype(f(plan(State()).begin()->first)) {
   };
 }
 
+template <class T, class U, class F>
+auto mthen(Plan<T> plan, F f) -> decltype(f()) {
+  static_assert(std::is_convertible<
+      F, std::function<Plan<U>()>>::value, "bad continuation type");
+  return [=](State state) {
+    PlanResult<T> result = plan(state);
+    std::vector<PlanResult<U>> mapped;
+    for (auto r : result) {
+      Plan<U> next_plan = f();
+      mapped.push_back(run_plan(next_plan, r.second));
+    }
+    return monads::concat_all(mapped);
+  };
+}
+
 template <class T>
 Plan<T> mreturn(T t) {
   return [t](State state) {
     return PlanResult<T>{std::make_pair(t, state)};
   };
+}
+
+template <class T>
+Plan<T> mzero() {
+  return [](State state) {
+    return PlanResult<T>{};
+  };
+}
+
+Plan<void*> mguard(bool condition) {
+  if (condition) {
+    return [](State state) {
+      return PlanResult<void*>{std::make_pair(nullptr, state)};
+    };
+  } else {
+    return mzero<void*>();
+  }
 }
 
 template <class T>
@@ -69,13 +101,9 @@ template <class T>
 Plan<std::pair<T, T>> pair_with_sum(T total) {
   return mbind<T, std::pair<T, T>>(select_one<T>(), [=](T first) {
     return mbind<T, std::pair<T, T>>(select_one<T>(), [=](T second) {
-      return static_cast<Plan<std::pair<T, T>>>([=](State state) {
-        if (first + second == total) {
-          return PlanResult<std::pair<T, T>>{
-              std::make_pair(std::make_pair(first, second), state)};
-        } else {
-          return PlanResult<std::pair<T, T>>{};
-        }
+      return mthen<void*, std::pair<T, T>>(
+          mguard(first + second == total), [=]() {
+        return mreturn(std::make_pair(first, second));
       });
     });
   });
