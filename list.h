@@ -39,6 +39,12 @@ auto for_each(const std::vector<T>& list, F f) -> decltype(f(list.front())) {
   return concat_all(transformed);
 }
 
+/*template <class T, class Predicate>
+std::vector<T> dedup(std::vector<T> list, Predicate equal) {
+  static_assert(std::is_convertible<
+      Predicate, std::function<bool(T, T)>>::value, "Bad predicate");
+}*/
+
 }  // namespace list
 
 #endif // _LIST_H_
