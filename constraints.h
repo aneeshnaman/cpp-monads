@@ -28,7 +28,7 @@ template <class T, class U, class F>
 auto mbind(Plan<T> plan, F f) -> decltype(f(plan(State()).begin()->first)) {
   static_assert(std::is_convertible<
       F, std::function<Plan<U>(T)>>::value, "bad continuation type");
-  Plan<U> new_plan = [=](State state) {
+  return [=](State state) {
     PlanResult<T> result = plan(state);
     std::vector<PlanResult<U>> mapped;
     for (auto r : result) {
@@ -37,7 +37,6 @@ auto mbind(Plan<T> plan, F f) -> decltype(f(plan(State()).begin()->first)) {
     }
     return monads::concat_all(mapped);
   };
-  return new_plan;
 }
 
 template <class T>
@@ -70,15 +69,14 @@ template <class T>
 Plan<std::pair<T, T>> pair_with_sum(T total) {
   return mbind<T, std::pair<T, T>>(select_one<T>(), [=](T first) {
     return mbind<T, std::pair<T, T>>(select_one<T>(), [=](T second) {
-      Plan<std::pair<T, T>> new_plan = [=](State state) {
+      return static_cast<Plan<std::pair<T, T>>>([=](State state) {
         if (first + second == total) {
           return PlanResult<std::pair<T, T>>{
               std::make_pair(std::make_pair(first, second), state)};
         } else {
           return PlanResult<std::pair<T, T>>{};
         }
-      };
-      return new_plan;
+      });
     });
   });
 }
